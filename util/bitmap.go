@@ -1,5 +1,7 @@
 package util
 
+import "fmt"
+
 type BitMap struct {
 	data     []uint64
 	capacity uint64
@@ -11,6 +13,15 @@ func NewBitMap(capacity uint64) *BitMap {
 		capacity: capacity,
 		data:     make([]uint64, data_len, data_len),
 	}
+}
+
+func (bm *BitMap) String() string {
+	result := ""
+	size := (bm.capacity + 63) / 64
+	for i := uint64(0); i < size; i++ {
+		result += fmt.Sprintf("%064b\n", bm.data[i])
+	}
+	return result
 }
 
 func (bm *BitMap) Set(pos uint64) {
