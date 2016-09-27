@@ -33,6 +33,7 @@ type TimerCounter struct {
 	outPath     string
 	outInterval uint32
 	outfile     *os.File
+	nowDay      string
 	paramChan   chan *TimerCounterParam
 }
 
@@ -46,11 +47,8 @@ func NewTimerCounter(path string, interval uint32) *TimerCounter {
 		outPath:     path,
 		outInterval: interval,
 	}
-	outfile, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0664)
-	if err != nil {
-		panic(err.Error())
-	}
-	tc.outfile = outfile
+
+	tc.change()
 	go tc.run()
 	return tc
 }
@@ -61,6 +59,28 @@ func (tc *TimerCounter) AddStat(key string, start *time.Time, end *time.Time) {
 		startTime: start,
 		endTime:   end,
 	}
+}
+
+func (tc *TimerCounter) change() {
+	nowDay := time.Now().Format("2006-01-02")
+	if nowDay == tc.nowDay {
+		return
+	}
+	if tc.outfile != nil {
+		tc.outfile.Close()
+	}
+
+	tc.nowDay = nowDay
+	outfile, err := os.OpenFile(tc.outPath+"."+tc.nowDay, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0664)
+	if err != nil {
+		panic(err.Error())
+	}
+	tc.outfile = outfile
+	tc.nowDay = nowDay
+
+	delDay := time.Unix(time.Now().Unix()-3600*24*7, 0).Format("2006-01-02")
+	os.Remove(tc.outPath + "." + delDay)
+
 }
 
 func (tc *TimerCounter) add(param *TimerCounterParam) {
