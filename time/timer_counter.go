@@ -151,6 +151,7 @@ func (tc *TimerCounter) output() {
 			mertic.threshold2_num,
 			mertic.threshold3_num)
 	}
+	buf += "\n"
 	tc.mertics = make(map[string]*TimerCounterItem)
 	tc.outfile.WriteString(buf)
 }
